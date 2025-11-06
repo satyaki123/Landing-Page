@@ -43,5 +43,6 @@ You can easily modify:
 * Animations
 * Branding / Logo
 
+![image alt](https://github.com/satyaki123/Landing-Page/blob/0a4a3e7158268b68224ab63238c768cf3d47cc6d/Screenshot.png)
 
 
