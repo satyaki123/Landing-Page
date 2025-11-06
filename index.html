@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NebulaFlow — AI-Native Workflow OS</title>
+  <style>
+    :root{
+      --bg: #0b0c10;
+      --card: #111218;
+      --muted: #a3a3ad;
+      --text: #e8e8ef;
+      --border: #242633;
+      --accent1: #6366f1; /* indigo */
+      --accent2: #a855f7; /* violet  */
+      --accent3: #ec4899; /* pink    */
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      color:var(--text); background:var(--bg);
+    }
+    /* Subtle grid background */
+    .grid-bg{position:fixed; inset:0; pointer-events:none; background:
+      linear-gradient(to right, transparent 0, transparent 49%, rgba(120,119,198,.08) 50%, transparent 51%, transparent 100%),
+      linear-gradient(to bottom, transparent 0, transparent 49%, rgba(120,119,198,.08) 50%, transparent 51%, transparent 100%);
+      background-size:36px 36px;}
+
+    .container{max-width:1100px; margin-inline:auto; padding:0 24px}
+    .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .btn{display:inline-flex; align-items:center; gap:.5rem; border-radius:999px; padding:.875rem 1.2rem; border:1px solid var(--border); background:#181a22; color:var(--text); cursor:pointer}
+    .btn.primary{background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3)); border:none}
+    .btn.ghost{background:transparent}
+    .badge{display:inline-flex; gap:.45rem; align-items:center; padding:.35rem .6rem; border:1px solid var(--border); border-radius:999px; font-size:.85rem; background:#151723}
+    .muted{color:var(--muted)}
+    .nav{position:sticky; top:16px; z-index:50}
+    .nav-inner{display:flex; align-items:center; justify-content:space-between; padding:10px 14px}
+    .logo{display:flex; align-items:center; gap:.6rem; font-weight:600}
+    .logo-dot{width:24px; height:24px; border-radius:8px; display:grid; place-items:center; color:white;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2),var(--accent3))}
+    .nav-links{display:none; gap:24px; font-size:.95rem}
+    .nav-links a{color:#d6d6df; text-decoration:none}
+    @media(min-width:768px){.nav-links{display:flex}}
+
+    /* Hero */
+    .hero{position:relative; overflow:hidden}
+    .blob{position:absolute; filter:blur(40px); opacity:.5; pointer-events:none}
+    .blob.one{top:-80px; left:-60px; width:320px; height:320px; background:conic-gradient(from 180deg at 50% 50%, rgba(99,102,241,.6), rgba(168,85,247,.6), rgba(236,72,153,.6), rgba(99,102,241,.6)); border-radius:50%}
+    .blob.two{bottom:-120px; right:-60px; width:420px; height:420px; background:conic-gradient(from 90deg at 50% 50%, rgba(99,102,241,.6), rgba(168,85,247,.6), rgba(236,72,153,.6), rgba(99,102,241,.6)); border-radius:50%}
+    .spot{position:absolute; inset:0; pointer-events:none}
+    .hero-inner{padding-top:96px; padding-bottom:32px}
+    h1{font-size:clamp(2.2rem, 3.5vw + 1rem, 4rem); line-height:1.1; margin:0}
+    .hero p{font-size:1.1rem; max-width:42ch}
+    .hero-cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px}
+    .hero-bullets{display:flex; gap:24px; flex-wrap:wrap; margin-top:18px; font-size:.95rem}
+
+    /* Demo */
+    .demo{padding-bottom:80px}
+    .demo .card{padding:18px}
+    .tabs{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; border:1px solid var(--border); border-radius:999px; padding:6px; background:#0f1016}
+    .tab{border:none; border-radius:999px; padding:10px 0; color:#cfd0da; background:transparent; cursor:pointer}
+    .tab.active{background:#1a1c25; color:var(--text)}
+    .nodes{display:grid; gap:12px}
+    @media(min-width:900px){.nodes{grid-template-columns:repeat(3,1fr)}}
+    .node{border:1px dashed var(--border); border-radius:14px; padding:14px; background:#141724; cursor:grab; user-select:none}
+    .range{width:100%}
+    .log{list-style:none; padding-left:0; margin:0}
+    .log li{display:flex; gap:8px; align-items:center; margin:8px 0}
+
+    /* Section base */
+    section{padding:80px 0}
+    h2{font-size:clamp(1.8rem, 2.2vw + 1rem, 3rem); margin:0 0 8px}
+
+    /* Features */
+    .features{display:grid; gap:14px}
+    @media(min-width:900px){.features{grid-template-columns:repeat(3,1fr)}}
+    .feature{position:relative; overflow:hidden; border-radius:18px; padding:18px; background:#131520; border:1px solid var(--border)}
+    .feature:hover .feature-spot{opacity:1}
+    .feature-spot{position:absolute; inset:0; opacity:0; transition:.2s ease}
+    .feature-icon{width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, rgba(99,102,241,.15), rgba(236,72,153,.15)); border:1px solid var(--border); margin-right:10px}
+
+    /* Pricing */
+    .pricing-toggle{display:flex; align-items:center; gap:10px; border:1px solid var(--border); padding:8px 12px; border-radius:999px}
+    .switch{appearance:none; width:48px; height:28px; background:#2a2d3a; border-radius:999px; position:relative; outline:none; cursor:pointer; border:1px solid var(--border)}
+    .switch:after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; background:#fff; border-radius:50%; transition:.2s}
+    .switch:checked{background:linear-gradient(90deg,var(--accent1),var(--accent2))}
+    .switch:checked:after{left:23px}
+
+    .tiers{display:grid; gap:14px}
+    @media(min-width:900px){.tiers{grid-template-columns:repeat(3,1fr)}}
+    .tier{padding:18px}
+    .tier.pop{border-color:var(--accent1)}
+    .price{font-size:2.2rem; font-weight:700}
+
+    /* Testimonials */
+    .testi{display:grid; gap:24px; align-items:center}
+    @media(min-width:900px){.testi{grid-template-columns:1fr 1fr}}
+
+    /* FAQ */
+    .accordion{max-width:800px; margin-inline:auto}
+    .acc-item{border:1px solid var(--border); border-radius:12px; margin:10px 0; overflow:hidden}
+    .acc-btn{width:100%; text-align:left; background:#141724; color:var(--text); padding:16px; border:none; display:flex; justify-content:space-between; align-items:center; cursor:pointer}
+    .acc-panel{padding:0 16px 16px; display:none; color:#d3d4de}
+
+    /* CTA & Footer */
+    .cta{position:relative; overflow:hidden}
+    .cta .halo{position:absolute; inset:0; opacity:.35; background:radial-gradient(800px circle at 80% 20%, rgba(99,102,241,.35), transparent)}
+    footer{padding-bottom:90px}
+
+    /* Utility */
+    .row{display:flex; gap:10px; align-items:center}
+    .space{height:18px}
+    .center{text-align:center}
+    .hidden{display:none}
+    .op70{opacity:.7}
+    .mt-8{margin-top:32px}
+    .mt-12{margin-top:48px}
+    .mb-8{margin-bottom:32px}
+    .w-full{width:100%}
+    .pill{border-radius:999px}
+    .inp{height:48px; padding:0 14px; border:1px solid var(--border); background:#121421; color:var(--text); border-radius:12px}
+
+    /* Light mode */
+    .light{--bg:#f8f9ff; --card:#ffffff; --text:#0c0d12; --border:#e5e7f0; --muted:#5b5d65}
+  </style>
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <div class="container">
+      <div class="card nav-inner">
+        <div class="logo"><div class="logo-dot">★</div> NebulaFlow</div>
+        <nav class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a href="#demo">Demo</a>
+        </nav>
+        <div class="row">
+          <label class="row muted" style="font-size:.9rem">
+            <span id="theme-label">Dark</span>
+            <input id="theme-switch" type="checkbox" class="switch" checked>
+          </label>
+          <button class="btn ghost" onclick="alert('⭐ Thanks for the star!')">⭐ Star</button>
+          <button class="btn primary" onclick="scrollToId('cta')">Get Started →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="blob one"></div>
+    <div class="blob two"></div>
+    <div class="spot" id="spot"></div>
+
+    <div class="container hero-inner">
+      <span class="badge">✨ New: Flow Studio 2.0</span>
+      <h1>Automate work like it's <span style="background:linear-gradient(90deg,var(--accent1),var(--accent2),var(--accent3)); -webkit-background-clip:text; color:transparent">2025</span>.</h1>
+      <p class="muted">NebulaFlow is the AI‑native workflow OS. Build, test, and ship automations that actually scale—without the brittle hacks.</p>
+      <div class="hero-cta">
+        <button class="btn primary" onclick="scrollToId('demo')">▶ Try the Live Demo</button>
+        <button class="btn" onclick="alert('We\'ll reach out soon!')">Book a call</button>
+      </div>
+      <div class="hero-bullets muted">
+        <div class="row">🛡 SOC2 Type II</div>
+        <div class="row">🚀 Edge Runtime</div>
+        <div class="row">🤝 2,000+ teams</div>
+      </div>
+    </div>
+
+    <div class="container demo" id="demo">
+      <div class="card">
+        <div class="row" style="justify-content:space-between; align-items:flex-end">
+          <div>
+            <div class="row" style="font-weight:600; font-size:1.05rem">🪄 Prompted Workflow</div>
+            <div class="muted" style="font-size:.95rem">A tiny, interactive look at NebulaFlow's building blocks.</div>
+          </div>
+          <span class="badge" id="demo-state">Active</span>
+        </div>
+        <div class="space"></div>
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="canvas">Canvas</button>
+          <button class="tab" data-tab="config">Config</button>
+          <button class="tab" data-tab="run">Run</button>
+        </div>
+        <div class="space"></div>
+        <!-- Canvas -->
+        <div class="tab-panel" id="panel-canvas">
+          <div class="nodes">
+            <div class="node" draggable="false"> <div class="muted" style="font-size:.8rem">Node</div><div style="font-weight:600">Trigger</div><div class="muted" style="font-size:.9rem">Webhook</div></div>
+            <div class="node" draggable="false"> <div class="muted" style="font-size:.8rem">Node</div><div style="font-weight:600">AI Prompt</div><div class="muted" style="font-size:.9rem">Summarize ticket</div></div>
+            <div class="node" draggable="false"> <div class="muted" style="font-size:.8rem">Node</div><div style="font-weight:600">Action</div><div class="muted" style="font-size:.9rem">Create Jira</div></div>
+          </div>
+          <p class="muted" style="margin-top:8px; font-size:.9rem">Tip: drag nodes around the canvas.</p>
+        </div>
+        <!-- Config -->
+        <div class="tab-panel hidden" id="panel-config">
+          <div class="nodes">
+            <div class="card" style="padding:14px">
+              <div class="muted" style="margin-bottom:6px; font-size:.95rem">Confidence Threshold</div>
+              <input id="conf" class="range" type="range" min="0" max="100" value="72">
+              <div id="conf-val" style="margin-top:6px">72%</div>
+            </div>
+            <div class="card row" style="padding:14px; justify-content:space-between">
+              <div>
+                <div class="muted" style="margin-bottom:4px; font-size:.95rem">Enable human approval</div>
+                <div class="muted" style="font-size:.85rem; opacity:.8">Route low-confidence runs for review</div>
+              </div>
+              <input id="approval" type="checkbox" class="switch" checked>
+            </div>
+          </div>
+        </div>
+        <!-- Run -->
+        <div class="tab-panel hidden" id="panel-run">
+          <ul class="log">
+            <li>✅ Received webhook</li>
+            <li>✅ AI summary created ({ tokens: 324 })</li>
+            <li>✅ Jira ticket NF-1042 created</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="container center">
+      <h2>Design‑first automation</h2>
+      <p class="muted">Beautiful building blocks you actually want to use every day.</p>
+      <div class="mt-12 features">
+        <!-- Feature cards -->
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">⚡</div><b>Automate Anything</b></div>
+          <p class="muted">Drag-and-drop workflows with AI-assisted steps and human-in-the-loop gates.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">🛡</div><b>Enterprise-Grade</b></div>
+          <p class="muted">SSO, audit trails, and fine‑grained permissions built-in from day one.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">🧩</div><b>Composable Blocks</b></div>
+          <p class="muted">Mix API calls, webhooks, DB actions, and LLM prompts like Lego.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">🌐</div><b>Global by Default</b></div>
+          <p class="muted">Edge runtime with 200+ POPs, smart caching, and failover.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">✨</div><b>Prompt Studio</b></div>
+          <p class="muted">Version prompts, test variants, and deploy to production safely.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-spot" aria-hidden></div>
+          <div class="row"><div class="feature-icon">🖱</div><b>No‑Code to Pro‑Code</b></div>
+          <p class="muted">Start visual—export real code when you're ready to scale.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="container">
+      <div class="row" style="justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:14px">
+        <div>
+          <h2>Simple, fair pricing</h2>
+          <p class="muted">Switch between monthly and yearly as you grow.</p>
+        </div>
+        <div class="pricing-toggle">
+          <span class="muted" id="label-monthly">Monthly</span>
+          <input id="yearly" type="checkbox" class="switch" checked>
+          <span id="label-yearly" style="font-weight:600">Yearly</span>
+          <span class="badge">Save 25%</span>
+        </div>
+      </div>
+
+      <div class="mt-12 tiers">
+        <div class="card tier">
+          <b>Starter</b>
+          <div class="muted">For individuals & tinkerers</div>
+          <div class="price" data-price-m="12" data-price-y="9">$9<span class="muted" style="font-size:1rem">/mo</span></div>
+          <ul class="muted">
+            <li>100 runs/day</li>
+            <li>2 team seats</li>
+            <li>Community support</li>
+          </ul>
+          <button class="btn w-full" style="margin-top:12px">Choose Starter</button>
+        </div>
+        <div class="card tier pop" style="border:1px solid var(--accent1)">
+          <div class="row" style="justify-content:space-between"><b>Growth</b><span class="badge">💸 Popular</span></div>
+          <div class="muted">Best for small teams</div>
+          <div class="price" data-price-m="39" data-price-y="29">$29<span class="muted" style="font-size:1rem">/mo</span></div>
+          <ul class="muted">
+            <li>5k runs/day</li>
+            <li>10 seats</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="btn primary w-full" style="margin-top:12px">Choose Growth</button>
+        </div>
+        <div class="card tier">
+          <b>Enterprise</b>
+          <div class="muted">Scale with confidence</div>
+          <div class="price" data-price-m="99" data-price-y="79">$79<span class="muted" style="font-size:1rem">/mo</span></div>
+          <ul class="muted">
+            <li>Custom runs</li>
+            <li>Unlimited seats</li>
+            <li>SLA & DPA</li>
+          </ul>
+          <button class="btn w-full" style="margin-top:12px">Choose Enterprise</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="container testi">
+      <div>
+        <h2>Teams ❤️ NebulaFlow</h2>
+        <p class="muted">Real outcomes, not vanity metrics. Here's what our customers say after month one.</p>
+      </div>
+      <div class="card" style="overflow:hidden">
+        <div id="quote" style="padding:24px; min-height:120px; transition:.35s ease all">
+          <p style="font-size:1.1rem">“We replaced 14 flaky zaps with one NebulaFlow canvas. Tickets ship 4× faster.”</p>
+          <div class="muted" style="margin-top:8px">— Amrita S., Support Lead @ Zento</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <div class="container center">
+      <h2>Frequently asked</h2>
+      <p class="muted">Everything you need to know, nothing you don't.</p>
+      <div class="accordion mt-12">
+        <div class="acc-item">
+          <button class="acc-btn">How does pricing scale? <span>＋</span></button>
+          <div class="acc-panel">We bill based on successful runs. Overages auto-scale to the next tier at the discounted rate.</div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-btn">Do you support on-prem? <span>＋</span></button>
+          <div class="acc-panel">Yes. Enterprise customers can deploy a private instance with our managed updates.</div>
+        </div>
+        <div class="acc-item">
+          <button class="acc-btn">What about data privacy? <span>＋</span></button>
+          <div class="acc-panel">We never train on your data. Data is encrypted at rest and in transit. Optional regional data residency.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section id="cta" class="cta">
+    <div class="halo"></div>
+    <div class="container">
+      <div class="card" style="position:relative; overflow:hidden">
+        <div style="position:absolute; inset:0; opacity:.25; background:radial-gradient(600px circle at 80% 20%, rgba(99,102,241,.35), transparent)"></div>
+        <div style="position:relative; padding:24px; display:grid; gap:18px; align-items:center">
+          <div>
+            <h2 style="margin:0">Ship your first automation today</h2>
+            <p class="muted">Launch in minutes with templates for support, finance, marketing, and more.</p>
+          </div>
+          <form class="row" onsubmit="event.preventDefault(); alert('Invite sent to '+document.getElementById('email').value)">
+            <input id="email" class="inp w-full" placeholder="you@company.com" />
+            <button class="btn primary" type="submit">Get invite</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div style="display:grid; gap:18px; grid-template-columns:repeat(1,1fr)">
+        <div>
+          <div class="logo"><div class="logo-dot">★</div> NebulaFlow</div>
+          <p class="muted" style="margin-top:8px">The AI‑native workflow OS. Build once, scale forever.</p>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:16px; font-size:.85rem">© <span id="year"></span> NebulaFlow Inc. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script>
+    // Smooth scroll helper
+    function scrollToId(id){ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}) }
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Theme toggle
+    const themeSwitch = document.getElementById('theme-switch');
+    const themeLabel = document.getElementById('theme-label');
+    function applyTheme(){
+      if(themeSwitch.checked){ document.body.classList.remove('light'); themeLabel.textContent='Dark'; }
+      else { document.body.classList.add('light'); themeLabel.textContent='Light'; }
+    }
+    themeSwitch.addEventListener('change', applyTheme); applyTheme();
+
+    // Hero spotlight follows cursor
+    const spot = document.getElementById('spot');
+    document.getElementById('hero').addEventListener('pointermove', (e)=>{
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+      spot.style.background = `radial-gradient(600px circle at ${x}px ${y}px, rgba(255,255,255,0.10), transparent 60%)`;
+    });
+
+    // Tabs logic
+    const tabs = document.querySelectorAll('.tab');
+    tabs.forEach(t=>t.addEventListener('click', ()=>{
+      tabs.forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      const val = t.dataset.tab;
+      document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('hidden'));
+      document.getElementById(`panel-${val}`).classList.remove('hidden');
+    }));
+
+    // Demo controls
+    const conf = document.getElementById('conf');
+    const confVal = document.getElementById('conf-val');
+    if(conf){ conf.addEventListener('input', ()=> confVal.textContent = conf.value + '%'); }
+
+    // Draggable nodes
+    document.querySelectorAll('.node').forEach(node=>{
+      let dragging=false, sx=0, sy=0, ox=0, oy=0;
+      node.style.position='relative';
+      node.addEventListener('pointerdown', (e)=>{ dragging=true; node.setPointerCapture(e.pointerId); sx=e.clientX; sy=e.clientY; ox=parseFloat(node.style.left||0); oy=parseFloat(node.style.top||0); node.style.cursor='grabbing'; });
+      node.addEventListener('pointermove', (e)=>{ if(!dragging) return; const dx=e.clientX-sx, dy=e.clientY-sy; node.style.left=(ox+dx)+"px"; node.style.top=(oy+dy)+"px"; });
+      node.addEventListener('pointerup', ()=>{ dragging=false; node.style.cursor='grab'; });
+    });
+
+    // Feature hover spotlight tracks cursor within each card
+    document.querySelectorAll('.feature').forEach(f=>{
+      const s = f.querySelector('.feature-spot');
+      f.addEventListener('pointermove', (e)=>{
+        const r = f.getBoundingClientRect();
+        const x = e.clientX - r.left; const y = e.clientY - r.top;
+        s.style.background = `radial-gradient(500px circle at ${x}px ${y}px, rgba(99,102,241,0.12), transparent 60%)`;
+      });
+    });
+
+    // Pricing toggle
+    const yearly = document.getElementById('yearly');
+    function updatePrices(){
+      document.querySelectorAll('.price').forEach(el=>{
+        const m = el.getAttribute('data-price-m');
+        const y = el.getAttribute('data-price-y');
+        const val = yearly.checked ? y : m;
+        el.innerHTML = `$${val}<span class="muted" style="font-size:1rem">/mo</span>`;
+      });
+      document.getElementById('label-yearly').style.fontWeight = yearly.checked? '600':'400';
+      document.getElementById('label-monthly').style.fontWeight = yearly.checked? '400':'600';
+    }
+    yearly.addEventListener('change', updatePrices); updatePrices();
+
+    // Testimonials rotator
+    const quotes=[
+      {q:'We replaced 14 flaky zaps with one NebulaFlow canvas. Tickets ship 4× faster.', a:'— Amrita S., Support Lead @ Zento'},
+      {q:'Their Prompt Studio finally made prompts feel like real code with versions and tests.', a:'— Diego R., CTO @ Helio'},
+      {q:'Our finance close went from 3 days to 4 hours. The ROI paid for itself in 2 weeks.', a:'— Mei L., Ops Manager @ Klaro'}
+    ];
+    let qi=0; const qEl = document.getElementById('quote');
+    setInterval(()=>{
+      qi=(qi+1)%quotes.length; qEl.style.opacity=.0; qEl.style.transform='translateY(6px)';
+      setTimeout(()=>{ qEl.innerHTML = `<p style="font-size:1.1rem">“${quotes[qi].q}”</p><div class="muted" style="margin-top:8px">${quotes[qi].a}</div>`; qEl.style.opacity=1; qEl.style.transform='translateY(0)'; }, 200);
+    }, 3500);
+
+    // FAQ accordion
+    document.querySelectorAll('.acc-item').forEach(item=>{
+      const btn = item.querySelector('.acc-btn');
+      const panel = item.querySelector('.acc-panel');
+      btn.addEventListener('click', ()=>{
+        const open = panel.style.display==='block';
+        document.querySelectorAll('.acc-panel').forEach(p=>p.style.display='none');
+        document.querySelectorAll('.acc-btn span').forEach(s=>s.textContent='＋');
+        if(!open){ panel.style.display='block'; btn.querySelector('span').textContent='−'; }
+      });
+    });
+  </script>
+</body>
+</html>
